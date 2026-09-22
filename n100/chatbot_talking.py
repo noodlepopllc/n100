@@ -12,6 +12,9 @@ from transformers import AutoTokenizer, TextStreamer, AutoProcessor
 from optimum.intel import OVModelForCausalLM, OVModelForSpeechSeq2Seq
 from optimum.intel.openvino import OVModelForTextToSpeechSeq2Seq
 
+os.environ["OMP_NUM_THREADS"] = "4"
+os.environ["OV_NUM_STREAMS"] = "1"
+
 warnings.filterwarnings("ignore", message="Defaulting repo_id to hexgrad/Kokoro-82M")
 
 # ==========================================
@@ -34,9 +37,9 @@ else:
 # ==========================================
 print("\n🚀 Loading LLM...")
 llm_model_id = "OpenVINO/LFM2.5-350M-int8-ov"
-#llm_model_id = "OpenVINO/TinyLlama-1.1B-Chat-v1.0-fp16-ov"
-#llm_model_id = "OpenVINO/Phi-4-mini-instruct-int4-ov"
-tokenizer = AutoTokenizer.from_pretrained(llm_model_id)
+llm_model_id = "./smollm2-135m-instruct-int8-ov"
+tokenizer = AutoTokenizer.from_pretrained("HuggingFaceTB/SmolLM2-135M-Instruct")
+
 llm_model = OVModelForCausalLM.from_pretrained(llm_model_id, device=ov_device, export=False)
 
 print("🔊 Loading TTS (Kokoro via OpenVINO)...")
@@ -189,24 +192,7 @@ def speak_text(text, threshold=250):
 
         sd.wait()
         audio_stream.write(audio_np.tobytes())
-'''
-def speak_text(text):
-    """Generates and plays audio for the ENTIRE cleaned block at once."""
-    cleaned_text = clean_and_cap_for_tts(text)
-    
-    if not cleaned_text.strip():
-        return
-        
-    print(f"\n🔊 [Speaking: {cleaned_text}]")
-    try:
-        inputs = tts_model.preprocess_input(cleaned_text, voice="af_heart", lang_code="a")
-        audio = tts_model.generate(**inputs)
-        audio_np = audio.numpy().astype(np.float32)
-        audio_bytes = audio_np.tobytes()
-        audio_stream.write(audio_bytes)
-    except Exception as e:
-        print(f"❌ [TTS Error]: {str(e)}")
-'''
+
 
 # ==========================================
 # 6. MAIN INTERACTIVE LOOP
@@ -331,7 +317,7 @@ while True:
         temperature=0.45,
         top_p=0.85,
         repetition_penalty=1.2,
-        max_new_tokens=90,
+        max_new_tokens=512,
         streamer=streamer
     ) 
 
