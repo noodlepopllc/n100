@@ -36,7 +36,8 @@ else:
 # 2. MODEL & HARDWARE INITIALIZATION
 # ==========================================
 print("\n🚀 Loading LLM...")
-llm_model_id = "OpenVINO/LFM2.5-350M-int8-ov"
+#llm_model_id = "OpenVINO/LFM2.5-350M-int8-ov"
+#tokenizer = AutoTokenizer.from_pretrained(llm_model_id)
 llm_model_id = "./smollm2-135m-instruct-int8-ov"
 tokenizer = AutoTokenizer.from_pretrained("HuggingFaceTB/SmolLM2-135M-Instruct")
 
